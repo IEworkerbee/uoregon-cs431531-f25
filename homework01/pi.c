@@ -15,6 +15,11 @@ double calcPi_Serial(int num_steps);
 double calcPi_P1(int num_steps);
 double calcPi_P2(int num_steps);
 
+double half_circle(double x) 
+{
+    // Height of half unit circle at point x with origin at 0
+    return sqrt(1 - pow(x, 2));
+}
 
 int main(int argc, char** argv)
 {
@@ -73,20 +78,42 @@ void usage(int argc, char** argv)
 double calcPi_Serial(int num_steps)
 {
     double pi = 0.0;
+    double dx = 2 / num_steps;
 
+    for (int i = 0; i < num_steps; i++) {
+        pi += half_circle(-1 + (dx * i)) * dx;
+    }
     return pi;
 }
 
 double calcPi_P1(int num_steps)
 {
     double pi = 0.0;
+    double dx = 2 / num_steps;
 
+    #pragma omp parallel
+    for (int i = 0; i < num_steps; i++) {
+        double tmp = half_circle(-1 + (dx * i)) * dx;
+        #pragma omp critical
+        pi += tmp;
+    }
     return pi;
 }
 
 double calcPi_P2(int num_steps)
 {
     double pi = 0.0;
+    int count = 0;
 
-    return pi;
+    #pragma omp parallel
+    for (int i = 0; i < num_steps; i++) {
+        double x = (rand() / (RAND_MAX / 2)) - 1;
+        double y = (rand() / (RAND_MAX / 2)) - 1;
+        
+        double is_in = (pow(x, 2) + pow(y, 2) <= 1);
+
+        #pragma omp atomic
+        count += is_in;
+    }
+    return (count * 4) / num_steps;
 }
