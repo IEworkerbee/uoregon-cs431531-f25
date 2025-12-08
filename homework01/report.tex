@@ -1,0 +1,56 @@
+\documentclass[11pt, twocolumn, letterpaper]{article}
+\usepackage{lipsum}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Homework 1 Report}
+\author{Kaegan Koski}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This is a brief analysis of serial and parallel implementations for computing $\pi$. By comparing these separate methods, I gained some insight as to how OpenMP works. The results were surprising, revealing some problems can be implemented using parallelization in a way that reduces time efficiency in comparison to the serial version.
+
+\section{Methodology}
+In this project, two methods for computing $\pi$ were tested. The first involved manually integrating a half circle function given by $y=\sqrt{1-x^2}$ The size of the rectangle was given by dividing the width of the half circle by the number of steps fed to the program. 
+
+This method was implemented in three ways. The first was in serial, where we ran the test 20 times to gain an average control time to compare with. The second and third used OpenMP parallelization of the for loop, adding each rectangle together. However, the summation variable needed to be singled out by the for loop. Each thread will need to change this variable, so we must lock it and unlock it to make sure that only one thread is updating it at a time. We use two directives for this, atomic and critical. 
+
+The second method used the Monte Carlo method to estimate the value of $\pi$. Within a for loop, I generate a unique random pair $(x,y)$. Each value of x and y is between -1 and 1. Then I check the distance of the $(x,y)$ pair from the origin $(0,0)$. If it is less than or equal to 1, then we can count that pair as within the circle. The count variable is also a shared piece of data, so we must once again use either a critical or atomic directive. I chose to use atomic for this project.
+
+\section{Results}
+Results on end pages.
+
+\section{Discussion}
+In figure 1, we see a significant increase in total time to complete for all methods over the serial method. This was initially a surprise to me, as it seems obvious that parallel implementations would be faster. Upon investigation, I found some possibilities for the loss in efficiency.
+
+Each implementation requires a usage of shared data. This data must be locked and unlocked for each thread that runs on the data. As the work before the locking is menial, most of the threads end up waiting for other threads to finish. This is called synchronization overhead.
+
+When we use a reduction(+:pi) directive, we can separate each of the sums into their own partitions, which get merged at the end of the full process. With this we find a significant increase in efficiency which overtakes the serial implementation. However, that is not within the bounds of this paper, and will not be discussed further. 
+
+The atomic directives vs critical were always faster. This is due to the fact that we only use atomics to control how we use a specific piece of memory. In our case, we were only adding to a value in both cases. This meant the operation was atomic, and could be run with one instruction on the CPU. Although this means we could avoid full on locks, we still had to make sure each cache on each thread had an up to date value for the summation variable.
+
+Overall, all the data we acquired matches our expectations when considering these points of interest. The problem itself does not lend itself very much to parallelization, however, when reduction is used and we have a large enough number of steps, we can see increases in efficiency. 
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Table1.PNG}
+    \caption{Figure 1}
+    \label{fig1}
+\end{figure*}
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Integration and Monte Carlo Time vs Number of Steps.PNG}
+    \caption{Figure 2}
+    \label{fig2}
+\end{figure*}
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Integration and Monte Carlo Time vs Threads.PNG}
+    \caption{Figure 3}
+    \label{fig3}
+\end{figure*}
+
+
+\end{document}
