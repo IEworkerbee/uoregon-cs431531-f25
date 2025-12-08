@@ -78,42 +78,43 @@ void usage(int argc, char** argv)
 double calcPi_Serial(int num_steps)
 {
     double pi = 0.0;
-    double dx = 2 / num_steps;
+    double dx = 2.0 / num_steps;
 
     for (int i = 0; i < num_steps; i++) {
-        pi += half_circle(-1 + (dx * i)) * dx;
+        pi += half_circle(-1.0 + (dx * i)) * dx;
     }
-    return pi;
+    return 2 * pi;
 }
 
 double calcPi_P1(int num_steps)
 {
     double pi = 0.0;
-    double dx = 2 / num_steps;
+    double dx = 2.0 / num_steps;
 
-    #pragma omp parallel
+    #pragma omp parallel for
     for (int i = 0; i < num_steps; i++) {
-        double tmp = half_circle(-1 + (dx * i)) * dx;
-        #pragma omp critical
-        pi += tmp;
+        #pragma omp automic
+        pi += half_circle(-1 + (dx * i)) * dx;
     }
-    return pi;
+    return 2 * pi;
 }
 
 double calcPi_P2(int num_steps)
 {
     double pi = 0.0;
-    int count = 0;
+    double count = 0.0;
 
-    #pragma omp parallel
-    for (int i = 0; i < num_steps; i++) {
-        double x = (rand() / (RAND_MAX / 2)) - 1;
-        double y = (rand() / (RAND_MAX / 2)) - 1;
+    #pragma omp parallel for
+    for (unsigned int i = 0; i < num_steps; i++) {
+        double x = (2 * ((double)(rand_r(&i)) / (double)(RAND_MAX))) - 1.0;
+        double y = (2 * ((double)(rand_r(&i)) / (double)(RAND_MAX))) - 1.0;
         
-        double is_in = (pow(x, 2) + pow(y, 2) <= 1);
-
-        #pragma omp atomic
-        count += is_in;
+        if (pow(x, 2) + pow(y, 2) <= 1.0) {
+            #pragma omp atomic
+            count += 1;
+        }
     }
-    return (count * 4) / num_steps;
+    
+    pi = ((double)(count * 4)) / ((double)num_steps);
+    return pi;
 }

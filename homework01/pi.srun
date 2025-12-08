@@ -15,4 +15,6 @@ export OMP_PLACES="cores"
 export OMP_PROC_BIND='spread'
 export OMP_DISPLAY_ENV='true'
 
-./pi 100000000
+for i in {1..20}; do
+    ./pi 100000000
+done
