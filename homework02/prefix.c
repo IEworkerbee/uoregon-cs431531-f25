@@ -116,13 +116,35 @@ void prefix_sum(int* src, int* prefix, int n)
 
 void prefix_sum_p1(int* src, int* prefix, int n)
 {
-
+    prefix[0] = src[0];
+    for(int i = 1; i < n; i *= 2) {
+        #pragma omp parallel for
+        for (int j = 0; j < (n - i); j++) {
+            prefix[j + i] = src[j + i] + src[j];
+        }
+        if (i < n/2) {
+            memcpy(src, prefix, n * sizeof(int));
+        }
+    }
 }
 
 void prefix_sum_p2(int* src, int* prefix, int n)
 {
-
+    int i = 2;
+    memcpy(prefix, src, n * sizeof(int));
+    for (; i <= n; i *= 2) {
+        #pragma omp parallel for 
+        for (int j = i - 1; j < n; j += i) {
+            prefix[j] += prefix[j - (i/2)];
+        }
+    }
+    i/=2;
+    for (; i > 1; i /= 2) {
+        #pragma omp parallel for
+        for (int j = i - 1; j < (n - 1); j += i) {
+            prefix[j + (i/2)] += prefix[j]; 
+        }
+    }
 }
-
 
 
