@@ -1,0 +1,49 @@
+\documentclass[11pt, twocolumn, letterpaper]{article}
+\usepackage{lipsum}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{booktabs}
+\title{Homework 2 Report}
+\author{Kaegan Koski}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This report will focus on the time costs of two parallel prefix algorithms. These algorithms leverage two ways of solving a problem in different ways. While in theory certain methods should outperform the other in specific settings, we find that memory allocation can throw a wrench in the gears. 
+
+\section{Methodology}
+In this project, two methods for computing a prefix were tested. The first was a Hillis and Steele algorithm focuses on excelling when parallelism is less limited. The second method used a Hillis and Steele algorithm which focused on being work efficient.  
+
+The first algorithm (without parallel threads) runs in $O(nlogn)$ time. I placed a counter within the for loops to verify that I reached this ideal. The second algorithm runs in $O(n)$ time with a more specific limit of about $2(n-1)$. When you leverage n parallel threads, you see that the first algorithm runs in $O(logn)$ time while the second algorithm reaches $2log(n)-1$ iterations meaning a similar $O(logn)$ time complexity. 
+
+We see that the second algorithm should take about 2 times as many iterations as algorithm one. Although there is more work to be done per iteration in the first algorithm, it should be able to use n threads to better advantage than algorithm two, as algorithm two never has n work to do in a iteration. Which means the extra work does not become a problem until we see the number of threads overtaken by n. 
+
+\section{Results}
+Results on end pages.
+
+\section{Discussion}
+In practice, we see very different results than what we would expect. This comes down to problem size I believe. As I noted before, algorithm one can expect a significant efficiency advantage when the number of threads is equal to n. But in practice, we rarely have as many threads as the size of our array. The maximum number of threads we can use is 128. When the array size is on the order of $2^{25}$, there is a tremendous amount of work to be done per iteration. However, algorithm two will have far less work to do per iteration. Each iteration can be chewed through quicker, leading to a more contentious times in relation to each algorithm. 
+
+When the problem size is small, algorithm one suffers from being unable to handle the data in-place. It always requires a buffer to handle our source data. Algorithm one also suffers from initiating and closing threads, which algorithm two will have to do less of. 
+
+I suspect I have made some mistakes in my implementation that perhaps more accurately explains my data. I suspect there may be cache issues, as my data is spatially local, and could could caching synchronization steps for all the threads. 
+
+\begin{table}[!t]
+\centering
+\caption{Algorithm Time vs. Number of Threads}
+\label{tab:algorithms vs threads}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Threads         & $O(n-1)$ & $O(nlogn)$ & $2(n-1)$ \\
+\midrule
+1               & 0.023746  & 0.425374  & 0.101165   \\
+2               & 0.0231255 & 0.396246  & 0.0800389 \\
+8               & 0.023701  & 0.426967  & 0.073091  \\
+32              & 0.0236333 & 0.333     & 0.0167308\\
+128             & 0.0243571 & 0.799834  & 0.0125913 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
